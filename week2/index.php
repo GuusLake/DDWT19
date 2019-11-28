@@ -7,10 +7,8 @@
  */
 
 include 'model.php';
-
 /* Connect to DB */
 $db = connect_db('localhost', 'ddwt19_week2', 'ddwt19','ddwt19');
-
 /* template for navigation */
 $template = Array(
     1 => Array(
@@ -33,10 +31,6 @@ $template = Array(
         'name' => 'Register',
         'url' => '/DDWT19/week2/register/'
     ),
-    6 => Array(
-        'name' => 'Log in',
-        'url' => '/DDWT19/week2/login/'
-    )
 );
 
 $nbr_series = count_series($db);
@@ -58,6 +52,11 @@ if (new_route('/DDWT19/week2/', 'get')) {
     /* Page content */
     $page_subtitle = 'The online platform to list your favorite series';
     $page_content = 'On Series Overview you can list your favorite series. You can see the favorite series of all Series Overview users. By sharing your favorite series, you can get inspired by others and explore new series.';
+
+    /* Get error msg from POST route */
+    if ( isset($_GET['error_msg']) ) {
+        $error_msg = get_error($_GET['error_msg']);
+    };
 
     /* Choose Template */
     include use_template('main');
@@ -96,6 +95,17 @@ elseif (new_route('/DDWT19/week2/serie/', 'get')) {
     $serie_id = $_GET['serie_id'];
     $serie_info = get_serieinfo($db, $serie_id);
 
+    /*Check if user is creator*/
+    if (check_login()) {
+        if ($_SESSION['user_id'] == $serie_info['user']) {
+            $display_buttons = true;
+        } else {
+            $display_buttons = false;
+        }
+    }else{
+        $display_buttons = false;
+    }
+
     /* Page info */
     $page_title = $serie_info['name'];
     $breadcrumbs = get_breadcrumbs([
@@ -124,6 +134,10 @@ elseif (new_route('/DDWT19/week2/serie/', 'get')) {
 
 /* Add serie GET */
 elseif (new_route('/DDWT19/week2/add/', 'get')) {
+    /* Check if logged in */
+    if ( !check_login() ) {
+        redirect('/DDWT19/week2/login/');
+    }
 
     /* Page info */
     $page_title = 'Add Series';
@@ -151,6 +165,11 @@ elseif (new_route('/DDWT19/week2/add/', 'get')) {
 
 /* Add serie POST */
 elseif (new_route('/DDWT19/week2/add/', 'post')) {
+    /* Check if logged in */
+    if ( !check_login() ) {
+        redirect('/DDWT19/week2/login/');
+    }
+
     /* Add serie to database */
     $feedback = add_serie($db, $_POST);
 
@@ -161,6 +180,10 @@ elseif (new_route('/DDWT19/week2/add/', 'post')) {
 
 /* Edit serie GET */
 elseif (new_route('/DDWT19/week2/edit/', 'get')) {
+    /* Check if logged in */
+    if ( !check_login() ) {
+        redirect('/DDWT19/week2/login/');
+    }
 
     /* Get serie info from db */
     $serie_id = $_GET['serie_id'];
@@ -187,6 +210,11 @@ elseif (new_route('/DDWT19/week2/edit/', 'get')) {
 
 /* Edit serie POST */
 elseif (new_route('/DDWT19/week2/edit/', 'post')) {
+    /* Check if logged in */
+    if ( !check_login() ) {
+        redirect('/DDWT19/week2/login/');
+    }
+
     /* Add serie to database */
     $feedback = update_serie($db, $_POST);
 
@@ -197,6 +225,11 @@ elseif (new_route('/DDWT19/week2/edit/', 'post')) {
 
 /* Remove serie */
 elseif (new_route('/DDWT19/week2/remove/', 'post')) {
+    /* Check if logged in */
+    if ( !check_login() ) {
+        redirect('/DDWT19/week2/login/');
+    }
+
     /* remove serie to database */
     $feedback = remove_serie($db, $_POST['serie_id']);
 
@@ -207,6 +240,10 @@ elseif (new_route('/DDWT19/week2/remove/', 'post')) {
 
 /* My account GET */
 elseif (new_route('/DDWT19/week2/myaccount/', 'get')) {
+    /* Check if logged in */
+    if ( !check_login() ) {
+        redirect('/DDWT19/week2/login/');
+    }
 
     /* Page info */
     $page_title = 'My account';
@@ -216,9 +253,9 @@ elseif (new_route('/DDWT19/week2/myaccount/', 'get')) {
         'My account' => na('/DDWT19/week2/myaccount/', True)
     ]);
     $navigation = get_navigation($template, 4);
-
+    $user = get_user_name($db, $_SESSION['user_id']);
     /* Page content */
-    $page_subtitle = get_user_name($db, $_SESSION['user_id']);
+    $page_subtitle = $user;
     $page_content = 'Overview your account below.';
 
     /* Get error msg from POST route */
@@ -267,7 +304,10 @@ elseif (new_route('/DDWT19/week2/register/', 'post')) {
 
 /* Log in GET */
 elseif (new_route('/DDWT19/week2/login/', 'get')) {
-
+    /* Check if logged in */
+    if ( check_login() ) {
+        redirect('/DDWT19/week2/myaccount/');
+    }
     /* Page info */
     $page_title = 'Log in';
     $breadcrumbs = get_breadcrumbs([
@@ -275,7 +315,7 @@ elseif (new_route('/DDWT19/week2/login/', 'get')) {
         'Week 2' => na('/DDWT19/week2/', False),
         'Log in' => na('/DDWT19/week2/login/', True)
     ]);
-    $navigation = get_navigation($template, 6);
+    $navigation = get_navigation($template, 1);
 
     /* Page content */
     $page_subtitle = 'Log into your account';
@@ -301,7 +341,12 @@ elseif (new_route('/DDWT19/week2/login/', 'post')) {
 }
 /* Log out GET */
 elseif (new_route('/DDWT19/week2/logout/', 'get')) {
+    /* add user to database */
+    $feedback = logout_user();
 
+    /* Redirect to overview route */
+    redirect(sprintf('/DDWT19/week2/?error_msg=%s',
+        json_encode($feedback)));
 }
 
 else {

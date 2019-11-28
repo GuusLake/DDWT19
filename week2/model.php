@@ -226,6 +226,15 @@ function get_error($feedback){
  * @return array with message feedback
  */
 function add_serie($pdo, $serie_info){
+    /*Check if user is creator*/
+    if (check_login()) {
+        if ($_SESSION['user_id'] == $serie_info['user']) {
+            return [
+                'type' => 'danger',
+                'message' => 'There was an error. You are not the original uploader'
+            ];
+        }
+    }
     /* Check if all fields are set */
     if (
         empty($serie_info['Name']) or
@@ -259,12 +268,13 @@ function add_serie($pdo, $serie_info){
     }
 
     /* Add Serie */
-    $stmt = $pdo->prepare("INSERT INTO series (name, creator, seasons, abstract) VALUES (?, ?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO series (name, creator, seasons, abstract, user) VALUES (?, ?, ?, ?, ?)");
     $stmt->execute([
         $serie_info['Name'],
         $serie_info['Creator'],
         $serie_info['Seasons'],
-        $serie_info['Abstract']
+        $serie_info['Abstract'],
+        $_SESSION['user_id']
     ]);
     $inserted = $stmt->rowCount();
     if ($inserted ==  1) {
@@ -328,12 +338,13 @@ function update_serie($pdo, $serie_info){
     }
 
     /* Update Serie */
-    $stmt = $pdo->prepare("UPDATE series SET name = ?, creator = ?, seasons = ?, abstract = ? WHERE id = ?");
+    $stmt = $pdo->prepare("UPDATE series SET name = ?, creator = ?, seasons = ?, abstract = ?, user =? WHERE id = ?");
     $stmt->execute([
         $serie_info['Name'],
         $serie_info['Creator'],
         $serie_info['Seasons'],
         $serie_info['Abstract'],
+        $_SESSION['user_id'],
         $serie_info['serie_id']
     ]);
     $updated = $stmt->rowCount();
@@ -358,6 +369,15 @@ function update_serie($pdo, $serie_info){
  * @return array
  */
 function remove_serie($pdo, $serie_id){
+    /*Check if user is creator*/
+    if (check_login()) {
+        if ($_SESSION['user_id'] == $serie_info['user']) {
+            return [
+                'type' => 'danger',
+                'message' => 'There was an error. You are not the original uploader'
+            ];
+        }
+    }
     /* Get series info */
     $serie_info = get_serieinfo($pdo, $serie_id);
 
@@ -557,4 +577,31 @@ function login_user($pdo, $form_data){
             json_encode($feedback)));
     }
 }
+/**
+ * Checks if a user is logged in
+ * @return boolean
+ */
+function check_login(){
+    session_start();
+    if (isset($_SESSION['user_id'])){
+        return True;
+    } else {
+        return False;
+    }
+}
 
+/**
+ * Add serie to the database
+ * @return array with message feedback
+ */
+function logout_user(){
+    session_start();
+    $_SESSION = array();
+    session_destroy();
+
+    /*return message*/
+    return [
+        'type' => 'danger',
+        'message' => 'You were logged out!'
+    ];
+}
