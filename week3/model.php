@@ -64,7 +64,7 @@ function get_series($pdo){
  * @param int $serie_id id from the serie
  * @return mixed
  */
-function get_serieinfo($pdo, $serie_id){
+function get_serie_info($pdo, $serie_id){
     $stmt = $pdo->prepare('SELECT * FROM series WHERE id = ?');
     $stmt->execute([$serie_id]);
     $serie_info = $stmt->fetch();
@@ -257,4 +257,11 @@ function count_series($pdo){
 function redirect($location){
     header(sprintf('Location: %s', $location));
     die();
+}
+
+/**
+ * Changes the HTTP Header content type to json
+ */
+function http_content_type(){
+    header('Content-Type: application/json');
 }

@@ -1,0 +1,15 @@
+{
+  "name": "vendor_name:GuusLake/package_name:DDWT19_week3",
+  "description": "",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Gijs Lakeman",
+      "email": "g.lakeman@student.rug.nl"
+    }
+  ],
+  "require": {
+    "bramus/router": "1.4.2"
+  }
+}
