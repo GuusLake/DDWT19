@@ -12,11 +12,28 @@ require __DIR__ . '/vendor/autoload.php';
 /* Include model.php */
 include 'model.php';
 
+/* Set credentials */
+$cred = set_cred('ddwt19', 'ddwt19');
+
 /* Connect to DB */
 $db = connect_db('localhost', 'ddwt19_week3', 'ddwt19', 'ddwt19');
 
 /* Create Router instance */
 $router = new \Bramus\Router\Router();
+
+// Credential check
+$router->before('GET|POST|PUT|DELETE', '/api/.*', function() use($cred){
+    // Validate authentication
+    $login = set_cred($_SERVER['HTTP_USERNAME'], $_SERVER['HTTP_PASSWORD']);
+    if (!check_cred($login, $cred)){
+        http_content_type();
+       echo json_encode([
+            'type' => 'Danger',
+            'message' => 'Credentials did not match'
+        ]);
+       exit();
+    }
+});
 
 // Add routes here
 $router->mount('/api', function() use ($router, $db){
@@ -57,9 +74,9 @@ $router->mount('/api', function() use ($router, $db){
         $result = update_serie($db, $serie_info);
         echo json_encode($result);
     });
-
 });
 
+// Error handling
 $router->set404(function (){
     header('HTTP/1.1 404 Not Found');
     echo 'Error 404: Page not found';

@@ -265,3 +265,30 @@ function redirect($location){
 function http_content_type(){
     header('Content-Type: application/json');
 }
+
+/**
+ * returns an associative array of the username and password
+ * @param string username
+ * @param string password
+ * @return array
+ */
+function set_cred($username, $password){
+    return(array(
+        'username' => $username,
+        'password' => $password
+    ));
+}
+
+/**
+ * returns an associative array of the username and password
+ * @param array input credentials
+ * @param array evaluation credentials
+ * @return boolean
+ */
+function check_cred($input, $eval){
+    if ($input == $eval){
+        return true;
+    }else{
+        return false;
+    }
+}
