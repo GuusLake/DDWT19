@@ -28,8 +28,8 @@ $router->before('GET|POST|PUT|DELETE', '/api/.*', function() use($cred){
     if (!check_cred($login, $cred)){
         http_content_type();
        echo json_encode([
-            'type' => 'Danger',
-            'message' => 'Credentials did not match'
+            'type' => '401',
+            'message' => 'Unauthorised Request'
         ]);
        exit();
     }
